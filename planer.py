@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+ 
 #####
 # Hard Constraints:
 # - Es gibt zwei Wegpunkte: Oldenburg und Varel
@@ -24,4 +24,30 @@
 #      anfahrt = Stundenzahl
 #      abfahrt = stundenzahl
 
+import csv,pprint
+
+# read data
+reader = csv.reader(open("data.csv"))
+# throw away headings
+next(reader)
+# read data and construct data structure
+days = ["mo","di","mi","do","fr"]
+datastore = {}
+for day in days:
+    hours = dict.fromkeys(range(1,10))
+    for hour in hours:
+        hours[hour] = {'hin': [], 'rück': []}
+    datastore[day] = hours
+    
+# now fill in the data
+for row in reader:
+    name = row[0]
+    for i in range(1,11):
+        direction = "hin" if i%2 else "rück"
+        hour = int(row[i])
+        print("%s %s on %s for hour %i" % (name,direction,days[int((i-1)/2)], hour)) 
+        datastore[days[int((i-1)/2)]][hour][direction].append(name)
+        print("datastore[%s][%s][%s].append(%s)" % (days[int((i-1)/2)],hour,direction,name) )
+        
+# now we gotta decide who drives with whom
 
