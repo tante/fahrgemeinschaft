@@ -1,2 +1,5 @@
-"NAME","MO hin","MO rück","DI hin","DI rück","MI hin","MI rück","DO hin","DO rück","FR hin","FR rück"
-"Horst",1,2,1,4,2,6,3,6,1,6
+NAME,MO hin,MO rück,DI hin,DI rück,MI hin,MI rück,DO hin,DO rück,FR hin,FR rück
+Horst,1,2,1,4,2,6,3,6,1,6
+Brigitte,1,4,1,4,3,5,2,6,1,6
+Peter,2,5,1,4,2,6,3,6,1,6
+Klaus,1,5,1,4,3,5,1,5,1,6
