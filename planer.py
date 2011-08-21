@@ -27,6 +27,8 @@
 import csv,pprint
 from random import choice,shuffle
 
+sequence= ["mo","di","mi","do","fr"]
+
 # read data
 reader = csv.reader(open("data.csv"))
 # throw away headings
@@ -51,7 +53,9 @@ for row in reader:
                 datastore[days[int((i-1)/2)]][hour][direction].append(name)
         except:
             pass
-    
+ 
+pprint.pprint(datastore)
+
 def assign(plan,day,hour,direction):
     people = list(plan[day][hour][direction]["people"])
     drivers = list(plan[day][hour][direction]["drivers"])
@@ -70,6 +74,7 @@ def assign(plan,day,hour,direction):
         groups.append({'driver':None,'people':[]})
     # randomize list
     shuffle(people)
+    
     for group in groups:
         for i in range(0,avg_size):
             if people:
@@ -81,15 +86,23 @@ def assign(plan,day,hour,direction):
                 make_driver(group['driver'],day,plan)
             else:
                 for person in group['people']:
-                    if is_driver(plan,person,day):
+                    if drove_to_work(plan,person,day):
                         group['driver']=person
                         group['people'].remove(group['driver'])
                         make_driver(group['driver'],day,plan)
+                    else:
+                        pass
+                        #print("No clue who to make driver")
                 if not group['driver']:
                     group['driver']=choice(group['people'])
                     group['people'].remove(group['driver'])
                     make_driver(group['driver'],day,plan)
-    
+    while people:
+        for group in groups:
+            if len(group['people'])<3:
+                groups[groups.index(group)]['people'].append(people.pop())
+                break
+
     return groups         
 
 def is_driver(plan,person,day):
@@ -104,6 +117,15 @@ def is_driver(plan,person,day):
     return driver
 
 
+def switch_driver(plan,person,newdriver):
+    pass
+
+def add_group(plan,day,hour,direction,driver):
+    #print("adding group")
+    for group in plan[day][hour][direction]['groups']:
+        if driver in group["people"]:
+            plan[day][hour][direction]["groups"][plan[day][hour][direction]["groups"].index(group)]['people'].remove(driver)
+    plan[day][hour][direction]["groups"].append({'driver':driver,'people':[]})
 
 def make_driver(person,day,plan):
     for hour in plan[day].keys():
@@ -111,18 +133,9 @@ def make_driver(person,day,plan):
             plan[day][hour]["hin"]['drivers'].append(person)
         if person in plan[day][hour]["rück"]['people']: 
             plan[day][hour]["rück"]['drivers'].append(person)
-
-def get_avail_cars(day,time,plan):
-    cars=[]
-    for h in range(1,time+1):
-        for driver in plan[day][h]['hin']['drivers']:
-            cars.append(driver)
-        for driver in plan[day][h]['rück']['drivers']:
-            try:
-                cars.remove(driver)
-            except:
-                pass
-    return cars
+        for group in plan[day][hour]["hin"]['groups']:
+            if person in group['people']:
+                add_group(plan,day,hour,"hin",person)
 
 plan = datastore.copy()
 # now we gotta decide who drives with whom
@@ -153,12 +166,95 @@ def make_plan(plan):
         for hour in newplan["mo"].keys():
             newplan[day][hour]['hin']['groups'] = assign(newplan,day,hour,"hin")
             newplan[day][hour]['rück']['groups'] = assign(newplan,day,hour,"rück")
-
     return newplan         
-        
+
+def drove_to_work(plan,person,day):
+    output=False
+    for hour in plan[day].keys():
+        for group in plan[day][hour]['hin']['groups']:
+            if person==group['driver']:
+                return True
+    return False
+
+def check_consistency(plan):
+    # we consider the plan to be fine until we find out differently
+    output = [True,"Everything fine"]
+    for day in plan.keys():
+        for hour in plan[day].keys():
+            for group in plan[day][hour]["hin"]['groups']:
+                if not group['driver']:
+                    return [False,"Group has no driver"]
+            for group in plan[day][hour]["rück"]['groups']:
+                if not drove_to_work(plan,group['driver'],day):
+                    return [False,"Person driving back did not drive to work (%s %i person: %s)" % (day,hour,group['driver']) ]
+            for person in plan[day][hour]["hin"]['people']:
+                ontheirway = False
+                for group in plan[day][hour]["hin"]['groups']:
+                    if (person in group['people']) or person==group['driver']:
+                        ontheirway=True
+                if not ontheirway:
+                    return [False,"Person not on their way to work (%s %i person: %s)" % (day,hour,person) ]
+                    
+            for person in plan[day][hour]["rück"]['people']:
+                ontheirway = False
+                for group in plan[day][hour]["rück"]['groups']:
+                    if (person in group['people']) or person==group['driver']:
+                        ontheirway=True
+                if not ontheirway:
+                    return [False,"Person not on their way back home (%s %i person: %s)" % (day,hour,person) ]
+            
+    return output
+
+
+def write(plan,filename):
+    sequence = ["mo","di","mi","do","fr"]
+    writer = csv.writer(open(filename,"w"), dialect='excel')
+    writer.writerow([None,"Montag","Dienstag","Mittwoch","Donnerstag","Freitag"])
+    for hour in range(1,10):
+        togroups = []
+        backgroups = []
+        for day in sequence:
+            togroups.append(plan[day][hour]['hin']['groups'])
+            backgroups.append(plan[day][hour]['rück']['groups'])
+        line = [hour]
+        for day in sequence:
+            line.append(mergeoutput(togroups[sequence.index(day)],backgroups[sequence.index(day)]))
+        writer.writerow(line)
+
+def formatgroup(group,direction):
+    string = ""
+    if direction=="hin":
+        string += "→"
+    else:
+        string += "←"
+    string += group['driver']
+    string += ", "
+    string += ", ".join(group['people'])
+    return string
+
+def mergeoutput(togroups,backgroups):
+    string= ""
+    for group in togroups:
+        string+=formatgroup(group,"hin")
+        string+="\n"
+    for group in backgroups:
+        string+=formatgroup(group,"rück")
+        string+="\n"
+    return string
+
 
 if __name__=="__main__":
-    myplan = make_plan(plan)
-    pprint.pprint(myplan)
-
+    planOK = False
+    while not planOK:
+        myplan = make_plan(plan)
+        planOK, message = check_consistency(myplan)
+        if not planOK:
+            pprint.pprint(myplan)
+            print("Fehler:")
+            print("\"%s\"" % message)
+    for day in sequence:
+        print(day.upper())
+        pprint.pprint(myplan[day])
+    
+    write(myplan,"test.csv")
 
