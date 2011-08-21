@@ -60,9 +60,13 @@ for row in reader:
 pprint.pprint(oneway)
 
 def assign(plan,day,hour,direction):
-    people = list(plan[day][hour][direction]["people"])
-    drivers = list(plan[day][hour][direction]["drivers"])
+    people = list(set(plan[day][hour][direction]["people"]))
+    drivers = list(set(plan[day][hour][direction]["drivers"]))
     groups=[]
+    print("%s %i" % (day,hour))
+    print(people)
+    print(drivers)
+    amount = len(people)
     if not people:
         return []
     for person in drivers:
@@ -70,14 +74,14 @@ def assign(plan,day,hour,direction):
         people.remove(person)
     if not people:
         return groups
-    amount = len(people)
     amount_groups = amount//4 if amount%4==0 else (amount//4)+1
     avg_size = amount//amount_groups
+    print (amount_groups)
     for i in range(0,amount_groups-len(drivers)):
         groups.append({'driver':None,'people':[]})
     # randomize list
+    print(groups)
     shuffle(people)
-    
     for group in groups:
         for i in range(0,avg_size):
             if people:
@@ -125,7 +129,7 @@ def add_group(plan,day,hour,direction,driver):
             plan[day][hour][direction]["groups"][plan[day][hour][direction]["groups"].index(group)]['people'].remove(driver)
     plan[day][hour][direction]["groups"].append({'driver':driver,'people':[]})
 
-def make_driver(person,day,plan):
+def make_driver(person,day,plan,one=False):
     for hour in plan[day].keys():
         if person in plan[day][hour]["hin"]['people']:
             plan[day][hour]["hin"]['drivers'].append(person)
@@ -134,12 +138,6 @@ def make_driver(person,day,plan):
         for group in plan[day][hour]["hin"]['groups']:
             if person in group['people']:
                 add_group(plan,day,hour,"hin",person)
-
-def make_oneway(person,day,plan):
-    for hour in plan[day].keys():
-        for person in plan[day][hour]["hin"]:
-            #plan[day][hour]["hin"]['drivers'].append(person)
-            pass
 
 plan = datastore.copy()
 # now we gotta decide who drives with whom
@@ -159,10 +157,9 @@ for day, data in datastore.items():
     # they are drivers for their other way as well
     for person in loners:
         make_driver(person,day,plan)
-
-    # those people driving to work but not back
 for one in oneway:
     make_driver(one[0],one[1],plan)
+
 
 def make_plan(plan):
     #make backup_copy
@@ -207,7 +204,10 @@ def check_consistency(plan):
                         ontheirway=True
                 if not ontheirway:
                     return [False,"Person not on their way back home (%s %i person: %s)" % (day,hour,person) ]
-            
+    if drove_to_work(plan,"Marion","di"):
+        return [False,"Marion fährt nicht Dienstags"]
+    if drove_to_work(plan,"Winfried","di"):
+        return [False,"Winfried fährt nicht Dienstags"]
     return output
 
 
