@@ -44,8 +44,10 @@ for day in days:
 
 # now fill in the data
 oneway = []
+allpeople = []
 for row in reader:
     name = row[0]
+    allpeople.append(name)
     for i in range(1,11):
         direction = "hin" if i%2 else "rück"
         try:
@@ -57,15 +59,10 @@ for row in reader:
         except:
             pass
 
-pprint.pprint(oneway)
-
 def assign(plan,day,hour,direction):
     people = list(set(plan[day][hour][direction]["people"]))
     drivers = list(set(plan[day][hour][direction]["drivers"]))
     groups=[]
-    print("%s %i" % (day,hour))
-    print(people)
-    print(drivers)
     amount = len(people)
     if not people:
         return []
@@ -76,16 +73,15 @@ def assign(plan,day,hour,direction):
         return groups
     amount_groups = amount//4 if amount%4==0 else (amount//4)+1
     avg_size = amount//amount_groups
-    print (amount_groups)
     for i in range(0,amount_groups-len(drivers)):
         groups.append({'driver':None,'people':[]})
     # randomize list
-    print(groups)
     shuffle(people)
     for group in groups:
         for i in range(0,avg_size):
             if people:
-                group['people'].append(people.pop())
+                if len(group['people'])<3:
+                    group['people'].append(people.pop())
         if not group['driver']:
             if direction=="hin":
                 group['driver']=choice(group['people'])
@@ -208,6 +204,15 @@ def check_consistency(plan):
         return [False,"Marion fährt nicht Dienstags"]
     if drove_to_work(plan,"Winfried","di"):
         return [False,"Winfried fährt nicht Dienstags"]
+    # niemand soll häufiger als 3 mal fahren
+    for person in allpeople:
+        isdriver = 0
+        for day in sequence:
+            if drove_to_work(plan,person,day):
+                isdriver +=1
+        if isdriver>3:
+            return [False,"%s fährt häufiger als 3 mal" % person]
+            
     return output
 
 
@@ -254,7 +259,6 @@ if __name__=="__main__":
         myplan = make_plan(plan)
         planOK, message = check_consistency(myplan)
         if not planOK:
-            pprint.pprint(myplan)
             print("Fehler:")
             print("\"%s\"" % message)
     for day in sequence:
