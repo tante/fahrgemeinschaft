@@ -260,7 +260,8 @@ if __name__=="__main__":
         planOK, message = check_consistency(myplan)
         if not planOK:
             print("Fehler:")
-            print("\"%s\"" % message)
+            print(message)
+    
     for day in sequence:
         print(day.upper())
         pprint.pprint(myplan[day])
