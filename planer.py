@@ -43,6 +43,7 @@ for day in days:
     datastore[day] = hours
 
 # now fill in the data
+oneway = []
 for row in reader:
     name = row[0]
     for i in range(1,11):
@@ -51,10 +52,12 @@ for row in reader:
             hour = int(row[i])
             if hour!=-1:
                 datastore[days[int((i-1)/2)]][hour][direction].append(name)
+            else:
+                oneway.append([name,str(days[int((i-1)/2)])])
         except:
             pass
- 
-pprint.pprint(datastore)
+
+pprint.pprint(oneway)
 
 def assign(plan,day,hour,direction):
     people = list(plan[day][hour][direction]["people"])
@@ -116,12 +119,7 @@ def is_driver(plan,person,day):
                 return True
     return driver
 
-
-def switch_driver(plan,person,newdriver):
-    pass
-
 def add_group(plan,day,hour,direction,driver):
-    #print("adding group")
     for group in plan[day][hour][direction]['groups']:
         if driver in group["people"]:
             plan[day][hour][direction]["groups"][plan[day][hour][direction]["groups"].index(group)]['people'].remove(driver)
@@ -136,6 +134,12 @@ def make_driver(person,day,plan):
         for group in plan[day][hour]["hin"]['groups']:
             if person in group['people']:
                 add_group(plan,day,hour,"hin",person)
+
+def make_oneway(person,day,plan):
+    for hour in plan[day].keys():
+        for person in plan[day][hour]["hin"]:
+            #plan[day][hour]["hin"]['drivers'].append(person)
+            pass
 
 plan = datastore.copy()
 # now we gotta decide who drives with whom
@@ -156,8 +160,9 @@ for day, data in datastore.items():
     for person in loners:
         make_driver(person,day,plan)
 
-    # Now we gotta see if we have drivers for everything.
-    # Every group driving back needs a car there
+    # those people driving to work but not back
+for one in oneway:
+    make_driver(one[0],one[1],plan)
 
 def make_plan(plan):
     #make backup_copy
