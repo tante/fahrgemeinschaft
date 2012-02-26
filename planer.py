@@ -262,9 +262,9 @@ if __name__=="__main__":
             print("Fehler:")
             print(message)
     
-    for day in sequence:
-        print(day.upper())
-        pprint.pprint(myplan[day])
+    #for day in sequence:
+        #print(day.upper())
+        #pprint.pprint(myplan[day])
     
     write(myplan,"test.csv")
 
