@@ -182,9 +182,9 @@ def check_consistency(plan):
             for group in plan[day][hour]["hin"]['groups']:
                 if not group['driver']:
                     return [False,"Group has no driver"]
-            for group in plan[day][hour]["rück"]['groups']:
-                if not drove_to_work(plan,group['driver'],day):
-                    return [False,"Person driving back did not drive to work (%s %i person: %s)" % (day,hour,group['driver']) ]
+   #         for group in plan[day][hour]["rück"]['groups']:
+  #              if not drove_to_work(plan,group['driver'],day):
+   #                 return [False,"Person driving back did not drive to work (%s %i person: %s)" % (day,hour,group['driver']) ]
             for person in plan[day][hour]["hin"]['people']:
                 ontheirway = False
                 for group in plan[day][hour]["hin"]['groups']:
@@ -200,18 +200,14 @@ def check_consistency(plan):
                         ontheirway=True
                 if not ontheirway:
                     return [False,"Person not on their way back home (%s %i person: %s)" % (day,hour,person) ]
-    if drove_to_work(plan,"Marion","di"):
-        return [False,"Marion fährt nicht Dienstags"]
-    if drove_to_work(plan,"Winfried","di"):
-        return [False,"Winfried fährt nicht Dienstags"]
     # niemand soll häufiger als 3 mal fahren
-    for person in allpeople:
-        isdriver = 0
-        for day in sequence:
-            if drove_to_work(plan,person,day):
-                isdriver +=1
-        if isdriver>3:
-            return [False,"%s fährt häufiger als 3 mal" % person]
+    #for person in allpeople:
+    #    isdriver = 0
+    #    for day in sequence:
+    #        if drove_to_work(plan,person,day):
+    #            isdriver +=1
+    #    if isdriver>3:
+    #        return [False,"%s fährt häufiger als 3 mal" % person]
             
     return output
 
