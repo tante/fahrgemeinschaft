@@ -78,7 +78,8 @@ def assign(plan,day,hour,direction):
     # randomize list
     shuffle(people)
     for group in groups:
-        for i in range(0,avg_size):
+        #        for i in range(0,avg_size):
+        for i in range(0,4):
             if people:
                 if len(group['people'])<3:
                     group['people'].append(people.pop())
@@ -102,7 +103,7 @@ def assign(plan,day,hour,direction):
                     make_driver(group['driver'],day,plan)
     while people:
         for group in groups:
-            if len(group['people'])<3:
+            if len(group['people'])<4:
                 groups[groups.index(group)]['people'].append(people.pop())
                 break
 
