@@ -1,1 +1,6 @@
 Berechnung von Fahrgemeinschaftsplanungsdingens
+
+data.csv ist eingabe
+test.csv Ausgabe
+
+data.csv muss im Unicode Format sein und die ; durch , ersetzt werden
