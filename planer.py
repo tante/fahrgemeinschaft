@@ -263,5 +263,5 @@ if __name__=="__main__":
  #       print(day.upper())
   #      pprint.pprint(myplan[day])
     
-    write(myplan,"test.csv")
+    write(myplan,"plan.csv")
 
